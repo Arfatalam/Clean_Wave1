@@ -3,6 +3,7 @@
 // CLEAN WAVE - MAIN JAVASCRIPT
 // Products, Cart, Clerk Checkout, WhatsApp
 // Offline Printable Invoice Generator
+// Mobile-Friendly Checkout
 // ==========================================
 
 const WHATSAPP_NUMBER = "919724656591";
@@ -213,7 +214,6 @@ const products = [
     }
 ];
 
-
 // ==========================================
 // CART FUNCTIONS
 // ==========================================
@@ -228,12 +228,10 @@ function getCart() {
     }
 }
 
-
 function saveCart(cart) {
     localStorage.setItem(CART_KEY, JSON.stringify(cart));
     updateCartCount();
 }
-
 
 function updateCartCount() {
     const countElement = document.getElementById("cartCount");
@@ -248,7 +246,6 @@ function updateCartCount() {
     countElement.textContent = total;
 }
 
-
 function getProductQuantity(productId) {
     const item = getCart().find(
         item => Number(item.id) === Number(productId)
@@ -256,7 +253,6 @@ function getProductQuantity(productId) {
 
     return item ? Number(item.quantity) : 0;
 }
-
 
 function addToCart(productId) {
     const cart = getCart();
@@ -278,7 +274,6 @@ function addToCart(productId) {
     renderProducts();
     renderCart();
 }
-
 
 function changeQuantity(productId, change) {
     let cart = getCart();
@@ -302,7 +297,6 @@ function changeQuantity(productId, change) {
     renderCart();
 }
 
-
 function removeFromCart(productId) {
     const cart = getCart().filter(
         item => Number(item.id) !== Number(productId)
@@ -312,7 +306,6 @@ function removeFromCart(productId) {
     renderProducts();
     renderCart();
 }
-
 
 // ==========================================
 // DISPLAY PRODUCTS
@@ -392,7 +385,6 @@ function renderProducts() {
         `;
     }).join("");
 }
-
 
 // ==========================================
 // DISPLAY CART
@@ -536,7 +528,6 @@ function renderCart() {
     `;
 }
 
-
 // ==========================================
 // INVOICE NUMBER
 // ==========================================
@@ -560,7 +551,6 @@ function createInvoiceNumber() {
     return `CW-${datePart}-${String(nextNumber).padStart(3, "0")}`;
 }
 
-
 // ==========================================
 // SAFELY DISPLAY CUSTOMER / PRODUCT TEXT
 // ==========================================
@@ -575,18 +565,14 @@ function escapeInvoiceHTML(value) {
     })[char]);
 }
 
-
 // ==========================================
 // OFFLINE PRINTABLE INVOICE
-// No jsPDF CDN required
 // ==========================================
 
 function generateInvoicePDF(order, invoiceTab) {
 
     if (!invoiceTab || invoiceTab.closed) {
-        throw new Error(
-            "Please allow pop-ups to open your invoice."
-        );
+        throw new Error("Please allow pop-ups to open your invoice.");
     }
 
     const rows = order.items.map(item => `
@@ -604,17 +590,12 @@ function generateInvoicePDF(order, invoiceTab) {
     <html lang="en">
 
     <head>
-
         <meta charset="UTF-8">
-
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>
-            ${escapeInvoiceHTML(order.invoiceNumber)} - CLEAN WAVE
-        </title>
+        <title>${escapeInvoiceHTML(order.invoiceNumber)} - CLEAN WAVE</title>
 
         <style>
-
             * {
                 box-sizing: border-box;
             }
@@ -623,14 +604,14 @@ function generateInvoicePDF(order, invoiceTab) {
                 font-family: Arial, sans-serif;
                 color: #26384a;
                 margin: 0;
-                padding: 30px;
+                padding: 20px;
                 background: #f2f5f8;
             }
 
             .invoice {
                 max-width: 850px;
                 margin: auto;
-                padding: 35px;
+                padding: 30px;
                 background: white;
             }
 
@@ -692,16 +673,33 @@ function generateInvoicePDF(order, invoiceTab) {
                 line-height: 1.6;
             }
 
-            .print-btn {
-                display: block;
+            .actions {
+                display: flex;
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 12px;
                 margin: 25px auto;
-                padding: 13px 25px;
+            }
+
+            .action-btn {
+                display: inline-block;
+                padding: 14px 22px;
                 border: 0;
                 border-radius: 7px;
-                background: #083d69;
                 color: white;
                 font-weight: bold;
                 cursor: pointer;
+                text-decoration: none;
+                font-size: 14px;
+                text-align: center;
+            }
+
+            .download-btn {
+                background: #083d69;
+            }
+
+            .whatsapp-btn {
+                background: #168b45;
             }
 
             @media print {
@@ -714,7 +712,7 @@ function generateInvoicePDF(order, invoiceTab) {
                     padding: 15px;
                 }
 
-                .print-btn {
+                .actions {
                     display: none;
                 }
             }
@@ -732,14 +730,20 @@ function generateInvoicePDF(order, invoiceTab) {
                     flex-direction: column;
                 }
 
+                .details {
+                    flex-direction: column;
+                }
+
                 th, td {
                     padding: 6px 3px;
                     font-size: 10px;
                 }
+
+                .action-btn {
+                    width: 100%;
+                }
             }
-
         </style>
-
     </head>
 
     <body>
@@ -764,29 +768,20 @@ function generateInvoicePDF(order, invoiceTab) {
             <div class="details">
 
                 <div>
-
                     <strong>Invoice Number:</strong><br>
-
                     ${escapeInvoiceHTML(order.invoiceNumber)}
 
                     <br><br>
 
                     <strong>Invoice Date:</strong><br>
-
                     ${escapeInvoiceHTML(order.dateText)}
-
                 </div>
 
                 <div>
-
                     <strong>BILL TO</strong><br>
-
                     ${escapeInvoiceHTML(order.customerName)}
-
                     <br>
-
                     ${escapeInvoiceHTML(order.customerEmail)}
-
                 </div>
 
             </div>
@@ -810,31 +805,60 @@ function generateInvoicePDF(order, invoiceTab) {
             </table>
 
             <div class="total">
-
                 Estimated Total: INR ${Number(order.total).toFixed(2)}
-
             </div>
 
             <div class="note">
-
                 This is a provisional order invoice, not a GST tax invoice
                 or proof of payment. Product availability, delivery charges,
                 applicable taxes and final payable amount must be confirmed
                 by CLEAN WAVE.
+            </div>
+
+            <div class="actions">
+
+                <button
+                    class="action-btn download-btn"
+                    onclick="window.print()"
+                >
+                    Download / Save Invoice PDF
+                </button>
+
+                <button
+                    class="action-btn whatsapp-btn"
+                    onclick="continueToWhatsApp()"
+                >
+                    Continue to WhatsApp
+                </button>
 
             </div>
 
-            <button
-                class="print-btn"
-                onclick="window.print()"
-            >
-                Print / Save Invoice as PDF
-            </button>
-
         </main>
 
-    </body>
+        <script>
+            function continueToWhatsApp() {
 
+                const whatsappUrl = ${JSON.stringify(order.whatsappUrl)};
+
+                try {
+                    if (
+                        window.opener &&
+                        !window.opener.closed &&
+                        typeof window.opener.cleanWaveCompleteCheckout === "function"
+                    ) {
+                        window.opener.cleanWaveCompleteCheckout();
+                    } else {
+                        localStorage.setItem("cleanWaveCart", "[]");
+                    }
+                } catch (error) {
+                    console.error("Cart update error:", error);
+                }
+
+                window.location.href = whatsappUrl;
+            }
+        <\/script>
+
+    </body>
     </html>
     `;
 
@@ -844,7 +868,6 @@ function generateInvoicePDF(order, invoiceTab) {
 
     return true;
 }
-
 
 // ==========================================
 // WHATSAPP CHECKOUT + INVOICE
@@ -859,18 +882,15 @@ async function checkoutWhatsApp() {
         return;
     }
 
-    // Open tabs immediately from the user's click.
-    // This helps avoid browser popup blocking.
-    const waTab = window.open("about:blank", "_blank");
+    // Open one invoice tab from the customer's click.
     const invoiceTab = window.open("about:blank", "_blank");
 
-    try {
+    if (!invoiceTab) {
+        alert("Please allow pop-ups for CLEAN WAVE and try again.");
+        return;
+    }
 
-        if (!waTab || !invoiceTab) {
-            throw new Error(
-                "Please allow pop-ups for your CLEAN WAVE website and try again."
-            );
-        }
+    try {
 
         // CHECK CLERK INITIALIZATION
         if (!window.cleanWaveClerkReady) {
@@ -884,7 +904,6 @@ async function checkoutWhatsApp() {
         // CHECK LOGIN
         if (!clerk.isSignedIn || !clerk.user) {
 
-            waTab.close();
             invoiceTab.close();
 
             window.location.href =
@@ -937,18 +956,17 @@ async function checkoutWhatsApp() {
 
         const now = new Date();
 
+        const invoiceNumber = createInvoiceNumber();
+
         // CREATE ORDER DETAILS
         const order = {
-            invoiceNumber: createInvoiceNumber(),
+            invoiceNumber,
             dateText: now.toLocaleDateString("en-IN"),
             customerName,
             customerEmail,
             items,
             total
         };
-
-        // GENERATE INVOICE
-        generateInvoicePDF(order, invoiceTab);
 
         // CREATE WHATSAPP MESSAGE
         const orderLines = items.map(item =>
@@ -958,7 +976,7 @@ async function checkoutWhatsApp() {
         const message = [
             "Hello CLEAN WAVE, I would like to place an order.",
             "",
-            `Invoice Reference: ${order.invoiceNumber}`,
+            `Invoice Reference: ${invoiceNumber}`,
             `Customer: ${customerName}`,
             `Email: ${customerEmail || "Not provided"}`,
             "",
@@ -974,31 +992,16 @@ async function checkoutWhatsApp() {
             "I have generated the provisional invoice. Please confirm product availability, delivery charges, applicable taxes and final amount."
         ].join("\n");
 
-        const whatsappUrl =
+        order.whatsappUrl =
             `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 
-        // OPEN WHATSAPP
-        waTab.location.href = whatsappUrl;
-
-        // CLEAR CART AFTER INVOICE GENERATION
-        // AND WHATSAPP CHECKOUT HANDOFF
-        saveCart([]);
-
-        renderCart();
-        renderProducts();
-        updateCartCount();
-
-        alert(
-            `Invoice ${order.invoiceNumber} created. Use Print / Save Invoice as PDF in the invoice tab. Your cart has been cleared.`
-        );
+        // GENERATE INVOICE.
+        // CART IS NOT CLEARED AT THIS STAGE.
+        generateInvoicePDF(order, invoiceTab);
 
     } catch (error) {
 
         console.error("CLEAN WAVE CHECKOUT ERROR:", error);
-
-        if (waTab && !waTab.closed) {
-            waTab.close();
-        }
 
         if (invoiceTab && !invoiceTab.closed) {
             invoiceTab.close();
@@ -1011,6 +1014,19 @@ async function checkoutWhatsApp() {
     }
 }
 
+// ==========================================
+// CLEAR CART WHEN CUSTOMER CONTINUES TO WHATSAPP
+// ==========================================
+
+window.cleanWaveCompleteCheckout = function() {
+
+    saveCart([]);
+
+    renderCart();
+    renderProducts();
+    updateCartCount();
+
+};
 
 // ==========================================
 // MOBILE NAVIGATION
@@ -1067,7 +1083,6 @@ function setupMobileMenu() {
 
     });
 }
-
 
 // ==========================================
 // PAGE INITIALIZATION
